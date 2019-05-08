@@ -14,10 +14,10 @@ library(cowplot)
 #######
 #Sumarise results in data frames:
 #######
-where="Sim_results/"
+where<-"Sim_results/"
 
 #Static environment with evolving sharing and innovation
-name="static_sharing_and_inno"
+name<-"static_sharing_and_inno"
 load(paste0(where,name,"/",1,name,".RData"))
 final_data_static<-final_data
 
@@ -28,7 +28,7 @@ for (loop_parameters in 1:nrow(final_data)){
 
 
 #Static environment with evolving sharing and fixed innovation
-name="static_sharing_only"
+name<-"static_sharing_only"
 load(paste0(where,name,"/",1,name,".RData"))
 final_data_fixed_inno<-final_data
 for (loop_parameters in 1:nrow(final_data)){
@@ -37,7 +37,7 @@ for (loop_parameters in 1:nrow(final_data)){
 }
 
 #Dynamic environment 
-name="dynamic_sharing_and_inno"
+name<-"dynamic_sharing_and_inno"
 load(paste0(where,name,"/",1,name,".RData"))
 final_data_dynamic<-final_data
 for (loop_parameters in 1:nrow(final_data)){
@@ -48,8 +48,8 @@ for (loop_parameters in 1:nrow(final_data)){
 
 
 ##Examples of Evolution
-name="static_sharing_and_inno"#fixed_inno"
-example1=example2=NULL
+name<-"static_sharing_and_inno"#fixed_inno"
+example1<-example2<-NULL
 
 #Find example where sharing evolved
 index_evolved <- sample(c(1:nrow(final_data_static))[final_data_static$sharing>0.9], size = 1)
@@ -88,20 +88,20 @@ p_inno1<-ggplot() +
 p_inno1
 
 #second example
-pops = data.frame(example2[[1]]) %>% dplyr::mutate(Generations=c(1:length(X1))) %>%
+pops <- data.frame(example2[[1]]) %>% dplyr::mutate(Generations=c(1:length(X1))) %>%
   gather("pop","Sharing",X1:paste0("X",reps))   
-means = data.frame(y=apply(example2[[1]],1,mean)) %>% dplyr::mutate(x=1:length(y))
-p_share2=ggplot() + 
+means <- data.frame(y=apply(example2[[1]],1,mean)) %>% dplyr::mutate(x=1:length(y))
+p_share2=<-gplot() + 
   geom_line(data = pops,aes(x=Generations,y=Sharing,color=pop,group=pop),  size = 0.5,alpha = 0.7)+#,color="gray"
   geom_line(data=means,aes(x=x,y=y),color="black",size=1)+
   theme_classic()+
   theme(legend.position = "none")+ ylim(0,1)
 p_share2
 
-pops = data.frame(example2[[2]]) %>% dplyr::mutate(Generations=c(1:length(X1))) %>%
+pops <- data.frame(example2[[2]]) %>% dplyr::mutate(Generations=c(1:length(X1))) %>%
   gather("pop","inno",X1:paste0("X",reps))   
-means = data.frame(y=apply(example2[[2]],1,mean)) %>% dplyr::mutate(x=1:length(y))
-p_inno2=ggplot() +
+means <- data.frame(y=apply(example2[[2]],1,mean)) %>% dplyr::mutate(x=1:length(y))
+p_inno2<-ggplot() +
   geom_line(data = pops,aes(x=Generations,y=inno,color=pop,group=pop),  size = 0.5,alpha = 0.7)+
   geom_line(data=means,aes(x=x,y=y),color="black",size=1)+
   theme_classic()+
@@ -116,13 +116,13 @@ ggsave("plots/evolution_example.pdf",examples, width = 6,height = 4,dpi = 600)
 
 
 ##### Result 2 sharing evloves in static environments
-plot_data = final_data_static %>%  filter(changeRate==0) %>%  
+plot_data <- final_data_static %>%  filter(changeRate==0) %>%  
   dplyr::mutate(splittingSensitivity = factor(ifelse(splittingSensitivity==0.5,"High (c=2)",ifelse(splittingSensitivity==1,"Medium (c=1)","Low (c=1/128)"))),
                 splittingSensitivity = factor(splittingSensitivity,levels(splittingSensitivity)[c(2,3,1)]),
                 Sharing=sharing) 
 
 
-p1 = plot_data %>%
+p1 <- plot_data %>%
   ggplot()+  geom_tile(aes(freeLocalInfoRadius,numAgents,fill=Sharing))+
   facet_grid(~splittingSensitivity)+scale_fill_viridis(limits=c(0, 1)) +
   labs(subtitle = "Competition")+
@@ -131,7 +131,7 @@ p1 = plot_data %>%
                                                 strip.text.y = element_blank())
 p1
 
-p2 = plot_data %>%
+p2 <- plot_data %>%
   ggplot()+  geom_tile(aes(freeLocalInfoRadius,numAgents,fill=Innovation)) +
   facet_grid(~splittingSensitivity)+scale_fill_viridis(limits=c(0, 1)) +
   labs(subtitle = "Competition")+
@@ -147,13 +147,13 @@ ggsave("plots/static.pdf",static, width = 7, height = 5,units = 'in')
 
 
 ##### Result 2 sharing needs inovation
-plot_data = final_data_fixed_inno %>%  filter(changeRate==0,innovation%in%c(0.25,0.5,1)) %>%  
+plot_data <- final_data_fixed_inno %>%  filter(changeRate==0,innovation%in%c(0.25,0.5,1)) %>%  
   dplyr::mutate(splittingSensitivity = factor(ifelse(splittingSensitivity==0.5,"High (c=2)",ifelse(splittingSensitivity==1,"Medium (c=1)","Low (c=1/128)"))),
                 splittingSensitivity = factor(splittingSensitivity,levels(splittingSensitivity)[c(2,3,1)]),
                 Sharing=sharing,
                 innovation = factor(ifelse(innovation==1,"High Inno",ifelse(innovation==0.5,"Medium Inno","Low Inno"))),
                 innovation = factor(innovation,levels(innovation)[c(1,3,2)])) 
-p1 = plot_data %>%
+p1 <- plot_data %>%
   ggplot()+  geom_tile(aes(freeLocalInfoRadius,numAgents,fill=Sharing))+
   facet_grid(innovation~splittingSensitivity)+scale_fill_viridis(limits=c(0, 1)) +
   labs(subtitle = "Competition")+
@@ -166,7 +166,7 @@ ggsave("plots/fixed_inno.pdf",p1, width = 6,height = 4,units='in')
 
 
 #### Dynamic environments
-plot_data = final_data_dynamic %>%  
+plot_data <- final_data_dynamic %>%  
   dplyr::mutate(splittingSensitivity = factor(ifelse(splittingSensitivity==0.5,"High (c=2)",ifelse(splittingSensitivity==1,"Medium (c=1)","Low (c=1/128)"))),
                 splittingSensitivity = factor(splittingSensitivity,levels(splittingSensitivity)[c(2,3,1)]),
                 changeRate = factor(changeRate, levels=c("0.6","0.3", "0")),
@@ -175,13 +175,13 @@ plot_data = final_data_dynamic %>%
 
 
 
-p1 = plot_data %>%
+p1 <- plot_data %>%
   ggplot()+  geom_tile(aes(freeLocalInfoRadius,numAgents,fill=Sharing))+
   facet_grid(changeRate~splittingSensitivity)+scale_fill_viridis(limits=c(0, 1)) +
   labs(subtitle = "Competition")+
   xlab("Visibility") +ylab("Group Size")+ theme(strip.background = element_blank())
 
-p2 = plot_data %>%
+p2 <- plot_data %>%
   ggplot()+  geom_tile(aes(freeLocalInfoRadius,numAgents,fill=Innovation)) +
   facet_grid(changeRate~splittingSensitivity)+scale_fill_viridis(limits=c(0, 1)) +
   labs(subtitle = "Competition")+
@@ -199,7 +199,7 @@ ggsave("plots/dynamic.pdf",dynamic,  width = 7,height = 7,units='in')
 ## Regression results
 
 #scale data
-final_data_scaled=final_data_dynamic %>% dplyr::mutate( freeLocalInfoRadius=scale(freeLocalInfoRadius),
+final_data_scaled<-final_data_dynamic %>% dplyr::mutate( freeLocalInfoRadius=scale(freeLocalInfoRadius),
                                                         splittingSensitivity=scale(-splittingSensitivity),
                                                         numAgents=scale(as.numeric(as.character(numAgents))),
                                                         changeRate=scale(as.numeric(as.character(changeRate))))
@@ -222,13 +222,13 @@ paramter_plot<- rbind(dummy,dummy3)
 
 paramter_plot$parameter<-c(rep("Sharing",length(dummy3$names)),rep("Innovation",length(dummy3$names)))
 
-paramter_plot = paramter_plot %>% dplyr::mutate(names=ifelse(names=="freeLocalInfoRadius","Visibility",names),
+paramter_plot <- paramter_plot %>% dplyr::mutate(names=ifelse(names=="freeLocalInfoRadius","Visibility",names),
                                                 names=ifelse(names=="numAgents","Group size",names),
                                                 names=ifelse(names=="splittingSensitivity","Competition",names),
                                                 names=ifelse(names=="changeRate","Environmental change",names))
 
 #make figure
-p1 = ggplot(data=paramter_plot,aes(y=Estimate,x=names,type=parameter,color=parameter, shape = parameter)) + 
+p1 <- ggplot(data=paramter_plot,aes(y=Estimate,x=names,type=parameter,color=parameter, shape = parameter)) + 
   geom_hline(yintercept=0,linetype="dashed", color="gray")+
   geom_point(position=position_dodge(0.25), size = 2)+
   geom_errorbar(aes(ymin=Q2.5, ymax=Q97.5,color=parameter), width=0,position=position_dodge(0.25))+ 
@@ -250,16 +250,16 @@ ggsave("plots/parameters.pdf",p1, width = 7,height = 3,units= 'in')
 source("Share_Evol_functions.R")
 
 #Set parameters for example
-numDimensions=10
+numDimensions<-10
 numValues <- 10 # number of different values that a dimension could take
-decayRate=1
-freeLocalInfoRadius=2
-numAgents=6
-changeRate=0
-splittingSensitivity = 1
-ploting=1
+decayRate<-1
+freeLocalInfoRadius<-2
+numAgents<-6
+changeRate<-0
+splittingSensitivity <- 1
+ploting<-1
 iterations <- 10000
-innovation=1 
+innovation<-1 
 
 #run each once
 performance_giver <- runCondition(numAgents, numDimensions, rep(innovation,numAgents), freeLocalInfoRadius, c(rep(0,numAgents-1),1), ploting, changeRate, decayRate,splittingSensitivity, turns=50)
@@ -278,7 +278,7 @@ performance_giver[c('score', 'num_visible','reci','get')] <- performance_giver[c
 performance_egos[c('score', 'num_visible','reci','get')]<-performance_egos[c('score', 'num_visible','reci','get')] / iterations
 
 
-performance_giver = performance_giver %>% filter(sharer==1) #choose the sharer
+performance_giver <- performance_giver %>% filter(sharer==1) #choose the sharer
 performance_egos <- performance_egos %>% filter(agent==1) #choose a random agent
 
 #combine simulation results
@@ -287,13 +287,13 @@ plot_data=  rbind(performance_giver,performance_egos) %>%dplyr::mutate(sharer=if
 
 
 #Make figure
-p1 = plot_data %>% 
+p1 <- plot_data %>% 
   ggplot(aes(x=round,y=score,color=factor(sharer),group=factor(sharer))) + theme_classic()+
   scale_color_manual(values = c(  "#56B4E9","#E69F00"), name=  '')+geom_line(size=1.2) + xlab("Trials") + ylab("Score")+
   scale_y_continuous(breaks=seq(0,0.3,0.1),limits = c(0,0.3))+ theme(legend.title=element_blank())+
   theme(legend.position = "none")
 
-p2 = plot_data %>%
+p2 <- plot_data %>%
   ggplot(aes(x=round,y=num_visible,color=factor(sharer),group=factor(sharer)))+ theme_classic()  +
   scale_color_manual(values = c(  "#56B4E9","#E69F00"), name=  '')+ geom_line(size=1.2) +
   xlab("Trials")+ylab( "Visible Peers")+

@@ -33,6 +33,7 @@ mutate <-function(guesses, changeProbability = 0.5){
 # }
 
 #apply rewards to a matrix of agent guesses, where each row is a different agent's guess and ideal is the global maximum
+#splittingSensitivity is the inverse of the competition parameter reported in the paper
 acquireRewards <- function(agents, ideal, splittingSensitivity){
   rewards <- sapply(1:nrow(agents), FUN=function(x) score(agents[x,], ideal)) #apply reward function
   #Calculate similarity between player solutions
@@ -92,7 +93,7 @@ se<-function(x){return(sd(x)/sqrt(length(x)))}
 
 which.max.random <- nnet::which.is.max
 
-#change the idealValues at each time step
+#change the idealValues at each time step; used for dynamic environments
 changeIdealValues<- function(idealValues, changeRate){
   if (rbinom(1,1,changeRate)==1){ #if successful, change global optimum
     changeAmount <- rbinom(length(idealValues),2,0.5) - 1
@@ -112,10 +113,9 @@ changeIdealValues<- function(idealValues, changeRate){
 #############################################################################################################################################################################################
 #Function to run a single replication using a single set of environmental parameters
 runCondition<-function(numAgents, numDimensions, changeProbability, freeLocalInfoRadius, shareVec, ploting, changeRate, decayRate,splittingSensitivity, turns=100){ 
-
-  reciproce_matrix=matrix(0,numAgents,numAgents)
-  get=rep(0,numAgents)
-  sum_scores =rep(0,numAgents)
+  reciproce_matrix<-matrix(0,numAgents,numAgents)
+  get<-rep(0,numAgents)
+  sum_scores <-rep(0,numAgents)
   
   #1. Intialize main data structures
   #array of agent guesses. Each row of matrix is an agent, each column is a dimension
@@ -162,16 +162,16 @@ runCondition<-function(numAgents, numDimensions, changeProbability, freeLocalInf
     observations <- updateObservations(agents, scores, observations, t)#update observations with individual mutations
     #Share information
     observations <- shareInformation(shareVec, agents, scores, observations, t) #add sharing information to observations 
-     sum_scores =  sum_scores +scores
+     sum_scores <-  sum_scores +scores
     
     if(ploting==1){  
       reciproce_matrix_old<-reciproce_matrix
       for (i in 1:numAgents){
-        obs=observations[[i]]
+        obs<-observations[[i]]
         max_own_rew<-max(obs[obs[,13]==i | obs[,12]<t,11])
-        other_source=obs[obs[,13]!=i,13]
+        other_source<-obs[obs[,13]!=i,13]
         other_better_source<- other_source[ (obs[obs[,13]!=i,11])>max_own_rew]
-      reciproce_matrix[i,other_better_source]=reciproce_matrix[i,other_better_source]+1
+      reciproce_matrix[i,other_better_source]<-reciproce_matrix[i,other_better_source]+1
       }
       
       reci<-rep(NA,numAgents)
@@ -199,47 +199,44 @@ runCondition<-function(numAgents, numDimensions, changeProbability, freeLocalInf
 ## The Evolutionary algorithm 
 #############################################################################################################################################################################################
 runEA<-function(numAgents,pop_size,number_of_generations,n_eval,changeRate,decayRate,type){
-  
-  
-  
-  result1=result2=NULL
+  result1=result2=NULL #initialize the output variables; TODO: initialize with pre-allocated size for speedup
   
   #Find initial sharing condition. If type=evolve, the initial population consists of non-sharers.
   #Otherwise the average proportion of sharers is a random number between 10%-90%.
   if(type=="evolve"){
-    start_mean_sharing=0
+    start_mean_sharing<-0
   } else{
-    start_mean_sharing=runif(1,0.1,0.9)
+    start_mean_sharing<-runif(1,0.1,0.9)
     
   }
   #The initial average innovation rate of is a random number between 0.1-0.9.
-  start_mean_innovation=runif(1,0.1,0.9)
+  start_mean_innovation<-runif(1,0.1,0.9)
   
   
   #Allocate genes with a given average:
-  a=1;  b=(a/start_mean_sharing)-a
-  sharing_chromosom=rbinom(pop_size,1,start_mean_sharing)
-  
-  a=1;  b=(a/start_mean_innovation)-a
-  innovation_chromosom=rbeta(pop_size,a,b)
+  #Sharing gene
+  a<-1  
+  b<-(a/start_mean_sharing)-a
+  sharing_chromosom<-rbinom(pop_size,1,start_mean_sharing)
+  #Innovation gene
+  a<-1
+  b<-(a/start_mean_innovation)-a
+  innovation_chromosom<-rbeta(pop_size,a,b)
 
-  
   #Save results of the evolutionary algorithm
-  result1=rbind(result1,c(mean(sharing_chromosom)))
-  result2=rbind(result2,c(mean(innovation_chromosom)))
+  result1<-rbind(result1,c(mean(sharing_chromosom)))
+  result2<-rbind(result2,c(mean(innovation_chromosom)))
   
   #Loop through ach generatiom
   for(gen in 1:(number_of_generations-1)){
-    
-    
     
     #if innovation should be fixed:
     if (fixed_inno==1){
           innovation_chromosom = rep(innovation,pop_size)
     }
     
-    probs=rep(1,pop_size) #probability of sampling indiviudaks
-    fitness=rep(0,pop_size) #vector containg fitness results
+    probs<-rep(1,pop_size) #probability of sampling indiviudaks
+    fitness<-rep(0,pop_size) #vector containg fitness results
     #repeat simulation n_eval times:
     for (evals in 1:n_eval){
       
@@ -248,60 +245,48 @@ runEA<-function(numAgents,pop_size,number_of_generations,n_eval,changeRate,decay
       #each time a individual is picked the probaibity that it is picked again is a fifth of before 
       #because the probabilities a relative it should assure a relative uniform number of repetitions for each individual.
       #Note that the some randomness helps the EA to maintain some variance in the genpool.
-      probs[index]=probs[index]/5 
-      ploting=0 #No plotts during the evolutionary algorithm 
+      probs[index]<-probs[index]/5 
+      ploting<-0 #No plotts during the evolutionary algorithm 
       
-      #run simualtion
+      #run simulation
       performance<-runCondition(numAgents, numDimensions, innovation_chromosom[index], freeLocalInfoRadius, sharing_chromosom[index], ploting, changeRate, decayRate,splittingSensitivity, turns=50) 
       
       fitness[index]<-  fitness[index]+performance #save performance (fitness)
     }
 
-
-    
-    
-    
-    selection_type=0 #We decided for tournament selection (not very influencial)
+    selection_type<-0 #We decided for tournament selection (not very influencial)
     if (selection_type==1){
-      ## Roulete selection
-      winners1=sample(pop_size,pop_size,replace=T,prob=rescale(fitness))
+      ## Roulette selection
+      winners1<-sample(pop_size,pop_size,replace=T,prob=rescale(fitness))
       ##
     }else{
       #k-turnement selection 
-      k=7
-      winners1=winners2=rep(NA,pop_size)
+      k<-7
+      winners1<-winners2<-rep(NA,pop_size)
       for (turns in 1:pop_size){
-        indexes=sample(1:pop_size,k) #sample tournament members
-        winners1[turns]=indexes[which.max.random(fitness[indexes])] #Who winns?
+        indexes<-sample(1:pop_size,k) #sample tournament members
+        winners1[turns]<-indexes[which.max.random(fitness[indexes])] #Who winns?
           
       }}
-    sharing_chromosom=(sharing_chromosom[winners1]) #Winners reproduce
-    innovation_chromosom=(innovation_chromosom[winners1])
-    
-  
+    sharing_chromosom<-(sharing_chromosom[winners1]) #Winners reproduce
+    innovation_chromosom<-(innovation_chromosom[winners1])
   
     ###mutation
-    mutation_rate=0.002
+    mutation_rate<-0.002
     dummy_index<-runif(pop_size)<mutation_rate
     sharing_chromosom[dummy_index]<-rbinom(sum(dummy_index),1,0.5)
 
-    
-    mutation_rate=0.02
+    mutation_rate<-0.02
     dummy_index<-runif(pop_size)<mutation_rate
     innovation_chromosom[dummy_index]<-  innovation_chromosom[dummy_index]+rnorm(sum(dummy_index),0,0.2)
     innovation_chromosom <- ifelse(innovation_chromosom>1,0.99,innovation_chromosom)
     innovation_chromosom <- ifelse(innovation_chromosom<0,0.01,innovation_chromosom)
     
-    
     #Save result
-    result1=rbind(result1,c(mean(sharing_chromosom)))
-    result2=rbind(result2,c(mean(innovation_chromosom)))
-    
-    
-    
+    result1<-rbind(result1,c(mean(sharing_chromosom)))
+    result2<-rbind(result2,c(mean(innovation_chromosom)))
     
   }
-  
   
   cbind(result1,result2)
 }
