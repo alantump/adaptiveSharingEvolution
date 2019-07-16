@@ -34,7 +34,7 @@ p1 <- ggplot(df, aes(x = dist, y = sim, color = c, linetype = c))+
   theme(legend.position = c(0.7,0.7))
 p1
 
-ggsave(filename = 'plots/splittingRate.pdf', p1, width = 5, height = 4, unit = 'in')
+ggsave(filename = 'plots/splittingRate.pdf', p1, width = 4, height = 3, unit = 'in')
 
 
 ####################
