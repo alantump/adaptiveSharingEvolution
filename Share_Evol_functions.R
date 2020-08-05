@@ -164,13 +164,13 @@ runCondition<-function(numAgents, numDimensions, changeProbability, freeLocalInf
     observations <- shareInformation(shareVec, agents, scores, observations, t) #add sharing information to observations 
      sum_scores <-  sum_scores +scores
     
-    if(ploting==1){  
+     if(ploting==1){  
       reciproce_matrix_old<-reciproce_matrix
       for (i in 1:numAgents){
         obs<-observations[[i]]
-        max_own_rew<-max(obs[obs[,13]==i | obs[,12]<t,11])
-        other_source<-obs[obs[,13]!=i,13]
-        other_better_source<- other_source[ (obs[obs[,13]!=i,11])>max_own_rew]
+        max_own_rew<-max(obs[obs[,numDimensions + 3]==i | obs[,numDimensions + 2]<t,numDimensions + 1])
+        other_source<-obs[obs[,numDimensions + 3]!=i,numDimensions + 3]
+        other_better_source<- other_source[ (obs[obs[,numDimensions + 3]!=i,numDimensions + 1])>max_own_rew]
       reciproce_matrix[i,other_better_source]<-reciproce_matrix[i,other_better_source]+1
       }
       
